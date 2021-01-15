@@ -1,2 +1,2 @@
 # Go_course
-Code written while following a course to learn how to make Go microservices
+Code written while following a course to learn how to make Go microservices in preparation for my bachelors task
