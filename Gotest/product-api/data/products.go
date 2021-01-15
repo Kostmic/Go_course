@@ -10,8 +10,12 @@ type Product struct {
 	Price       float32
 	SKU         string
 	CreatedOn   string
-	UpdateOn    string
+	UpdatedOn   string
 	DeltedOn    string
+}
+
+func GetProducts() []*Product {
+	return productList
 }
 
 var productList = []*Product{

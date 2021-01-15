@@ -8,33 +8,46 @@ import (
 	"os/signal"
 	"time"
 
-	"./handlers"
+	"./env"
+
+	"./product-api/handlers"
 )
 
+var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
+
 func main() {
+
+	env.Parse()
+
 	logger := log.New(os.Stdout, "product-api", log.LstdFlags)
-	helloHandler := handlers.NewHello(logger)
-	byeHandler := handlers.NewGoodbye(logger)
 
+	// create the handlers
+	productHandler := handlers.NewProducts(logger)
+
+	// create a new serve mux and register the handlers
 	serveMux := http.NewServeMux()
-	serveMux.Handle("/", helloHandler)
-	serveMux.Handle("/goodbye", byeHandler)
+	serveMux.Handle("/", productHandler)
 
-	server := &http.Server{
-		Addr:              ":9090",
-		Handler:           serveMux,
-		IdleTimeout:       120 * time.Second,
-		ReadHeaderTimeout: 1 * time.Second,
-		WriteTimeout:      1 * time.Second,
+	// create a new server
+	server := &http.Server{ // configure the bind address
+		Addr:              ":9090",           // set the default handler
+		Handler:           serveMux,          // set the logger for the server
+		IdleTimeout:       120 * time.Second, // max time to read request from the client
+		ReadHeaderTimeout: 1 * time.Second,   // max time to write response to the client
+		WriteTimeout:      1 * time.Second,   // max time for the connections using TCP Keep-Alive
 	}
 
+	// start the server
 	go func() {
+		logger.Println("Starting server port 9090")
+
 		err := server.ListenAndServe()
 		if err != nil {
-			logger.Fatal(err)
+			logger.Printf("Error starting server: %s\n", err)
+			os.Exit(1)
 		}
 	}()
-
+	// trap sigterm or interrupt and gracefully shutdown the server
 	signalChannel := make(chan os.Signal)
 	signal.Notify(signalChannel, os.Interrupt)
 	signal.Notify(signalChannel, os.Kill)
