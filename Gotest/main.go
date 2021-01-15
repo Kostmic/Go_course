@@ -30,7 +30,7 @@ func main() {
 
 	// create a new server
 	server := &http.Server{ // configure the bind address
-		Addr:              ":9090",           // set the default handler
+		Addr:              *bindAddress,      // set the default handler
 		Handler:           serveMux,          // set the logger for the server
 		IdleTimeout:       120 * time.Second, // max time to read request from the client
 		ReadHeaderTimeout: 1 * time.Second,   // max time to write response to the client
