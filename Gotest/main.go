@@ -30,11 +30,12 @@ func main() {
 
 	// create a new server
 	server := &http.Server{ // configure the bind address
-		Addr:              *bindAddress,      // set the default handler
-		Handler:           serveMux,          // set the logger for the server
-		IdleTimeout:       120 * time.Second, // max time to read request from the client
-		ReadHeaderTimeout: 1 * time.Second,   // max time to write response to the client
-		WriteTimeout:      1 * time.Second,   // max time for the connections using TCP Keep-Alive
+		Addr:         *bindAddress,      // set the default handler
+		Handler:      serveMux,          // set the logger for the server
+		ErrorLog:     logger,            // set the logger for the server
+		ReadTimeout:  5 * time.Second,   // max time to write response to the client
+		WriteTimeout: 10 * time.Second,  // max time for the connections using TCP Keep-Alive
+		IdleTimeout:  120 * time.Second, // max time to read request from the client
 	}
 
 	// start the server

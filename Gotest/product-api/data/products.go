@@ -18,6 +18,11 @@ type Product struct {
 	DeltedOn    string  `json:"-"`
 }
 
+func (products *Product) FromJSON(reader io.Reader) error {
+	encoder := json.NewDecoder(reader)
+	return encoder.Decode(products)
+}
+
 type Products []*Product
 
 func (products *Products) ToJSON(writer io.Writer) error {
