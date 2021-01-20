@@ -43,13 +43,13 @@ func (products *Products) getProducts(responseWriter http.ResponseWriter, reader
 }
 
 func (products *Products) addProduct(responseWriter http.ResponseWriter, reader *http.Request) {
-	products.logger.Println("Handle POST Products")
+	products.logger.Println("Handle POST Product")
 
 	product := &data.Product{}
 
 	err := product.FromJSON(reader.Body)
 	if err != nil {
-		http.Error(responseWriter, "Unabløe to unmarshal JSON", http.StatusBadRequest)
+		http.Error(responseWriter, "Unable to unmarshal JSON", http.StatusBadRequest)
 	}
 
 	products.logger.Printf("Prod: %#v", product)
