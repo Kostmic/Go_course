@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,14 +33,8 @@ func (products *Products) GetProducts(responseWriter http.ResponseWriter, reques
 func (products *Products) AddProduct(responseWriter http.ResponseWriter, request *http.Request) {
 	products.logger.Println("Handle POST Product")
 
-	prod := &data.Product{}
-
-	err := prod.FromJSON(request.Body)
-	if err != nil {
-		http.Error(responseWriter, "Unable to unmarshal JSON", http.StatusBadRequest)
-	}
-
-	data.AddProduct(prod)
+	prod := request.Context().Value(KeyProduct{}).(data.Product)
+	data.AddProduct(&prod)
 }
 
 func (products Products) UpdateProducts(responseWriter http.ResponseWriter, request *http.Request) {
@@ -49,16 +44,11 @@ func (products Products) UpdateProducts(responseWriter http.ResponseWriter, requ
 		http.Error(responseWriter, "Unable to convert id", http.StatusBadRequest)
 		return
 	}
+
 	products.logger.Println("Handle PUT Product", id)
+	prod := request.Context().Value(KeyProduct{}).(data.Product)
 
-	prod := &data.Product{}
-
-	err = prod.FromJSON(request.Body)
-	if err != nil {
-		http.Error(responseWriter, "Unable to unmarshal JSON", http.StatusBadRequest)
-	}
-
-	err = data.UpdateProduct(id, prod)
+	err = data.UpdateProduct(id, &prod)
 	if err == data.ErrProductNotFound {
 		http.Error(responseWriter, "Product not found", http.StatusNotFound)
 		return
@@ -68,4 +58,24 @@ func (products Products) UpdateProducts(responseWriter http.ResponseWriter, requ
 		http.Error(responseWriter, "Product not found", http.StatusInternalServerError)
 		return
 	}
+}
+
+type KeyProduct struct{}
+
+func (products Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
+		prod := &data.Product{}
+
+		err := prod.FromJSON(request.Body)
+		if err != nil {
+			products.logger.Println("[ERROR] deserializing product", err)
+			http.Error(responseWriter, "Unable to unmarshal JSON", http.StatusBadRequest)
+			return
+		}
+
+		context := context.WithValue(request.Context(), KeyProduct{}, prod)
+		contextRequest := request.WithContext(context)
+
+		next.ServeHTTP(responseWriter, contextRequest)
+	})
 }
