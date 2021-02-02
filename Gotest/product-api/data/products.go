@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	"github.com/go-playground/validator"
 )
 
 // Products defines the structure for an API product
@@ -22,6 +24,11 @@ type Product struct {
 func (products *Product) FromJSON(reader io.Reader) error {
 	encoder := json.NewDecoder(reader)
 	return encoder.Decode(products)
+}
+
+func (product *Product) Validate() error {
+	validate := validator.New()
+	return validate.Struct(product)
 }
 
 type Products []*Product

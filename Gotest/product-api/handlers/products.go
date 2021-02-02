@@ -37,7 +37,7 @@ func (products *Products) AddProduct(responseWriter http.ResponseWriter, request
 	data.AddProduct(&prod)
 }
 
-func (products Products) UpdateProducts(responseWriter http.ResponseWriter, request *http.Request) {
+func (products Products) UpdateProduct(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -64,7 +64,7 @@ type KeyProduct struct{}
 
 func (products Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
-		prod := &data.Product{}
+		prod := data.Product{}
 
 		err := prod.FromJSON(request.Body)
 		if err != nil {
@@ -74,8 +74,8 @@ func (products Products) MiddlewareValidateProduct(next http.Handler) http.Handl
 		}
 
 		context := context.WithValue(request.Context(), KeyProduct{}, prod)
-		contextRequest := request.WithContext(context)
+		request = request.WithContext(context)
 
-		next.ServeHTTP(responseWriter, contextRequest)
+		next.ServeHTTP(responseWriter, request)
 	})
 }
